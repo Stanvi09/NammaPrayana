@@ -1,0 +1,50 @@
+[
+  {
+    "device_id": "esp32_train_01",
+    "nonce": "sample_nonce_001_start",
+    "timestamp": 1729958400.0,
+    "signature": "e50f7f6672cdbc012c80e25930373d4e06278c35c8fa375c3b02fa8d9ae1f417",
+    "payload": {
+      "train_id": "T1",
+      "checkpoint_id": "Start",
+      "timestamp": 1729958400.0,
+      "scheduled_time": 1729958400.0
+    }
+  },
+  {
+    "device_id": "esp32_train_01",
+    "nonce": "sample_nonce_002_mid",
+    "timestamp": 1729958425.0,
+    "signature": "db3c4e01a50903c5bc7d83d8e8d0600efd29941e64797571a4a2de9aa4ef87ed",
+    "payload": {
+      "train_id": "T1",
+      "checkpoint_id": "Mid",
+      "timestamp": 1729958425.0,
+      "scheduled_time": 1729958418.0
+    }
+  },
+  {
+    "device_id": "esp32_door_c1",
+    "nonce": "sample_nonce_003_door_c1",
+    "timestamp": 1729958426.0,
+    "signature": "0484ef3fd2b8d243d73bfcce7405c74b8fc155611ba9d6df6dc6acaf2e35da57",
+    "payload": {
+      "coach_id": "C1",
+      "timestamp": 1729958426.0,
+      "people_in": 8,
+      "people_out": 2
+    }
+  },
+  {
+    "device_id": "esp32_train_01",
+    "nonce": "sample_nonce_004_majestic",
+    "timestamp": 1729958448.0,
+    "signature": "c9d4148ec0d8a209ab7323582682c9d3aefab01dc0b20f92dac239758cbe6099",
+    "payload": {
+      "train_id": "T1",
+      "checkpoint_id": "Majestic",
+      "timestamp": 1729958448.0,
+      "scheduled_time": 1729958438.0
+    }
+  }
+]

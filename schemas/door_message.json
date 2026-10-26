@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nammaflow.internal/schemas/door_message.json",
+  "title": "NammaFlowDoorMessage",
+  "description": "Frozen coach door counter telemetry format for NammaFlow train testbed",
+  "type": "object",
+  "required": ["coach_id", "timestamp", "people_in", "people_out"],
+  "properties": {
+    "coach_id": {
+      "type": "string",
+      "pattern": "^C[1-6]$",
+      "description": "Identifier for the coach (e.g., 'C1', 'C2', ... 'C6')"
+    },
+    "timestamp": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Unix epoch seconds when the door count batch was recorded"
+    },
+    "people_in": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Non-negative count of passengers entering through the door"
+    },
+    "people_out": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Non-negative count of passengers exiting through the door"
+    }
+  },
+  "additionalProperties": false
+}

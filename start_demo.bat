@@ -1,0 +1,3 @@
+@echo off
+echo Starting NammaFlow Demo...
+python scripts/start_demo.py %*

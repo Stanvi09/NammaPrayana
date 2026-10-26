@@ -1,0 +1,14 @@
+{
+  "festivals": [
+    {"date": "2026-10-02", "name": "Gandhi Jayanti", "crowd_multiplier": 1.25},
+    {"date": "2026-10-18", "name": "Durga Ashtami", "crowd_multiplier": 1.40},
+    {"date": "2026-10-20", "name": "Vijayadashami", "crowd_multiplier": 1.50},
+    {"date": "2026-10-26", "name": "Deepavali Festival Week", "crowd_multiplier": 1.45},
+    {"date": "2026-11-01", "name": "Kannada Rajyotsava", "crowd_multiplier": 1.60}
+  ],
+  "cricket_matches": [
+    {"date": "2026-10-11", "venue": "M. Chinnaswamy Stadium", "event": "T20 Match", "crowd_multiplier": 1.55},
+    {"date": "2026-10-25", "venue": "M. Chinnaswamy Stadium", "event": "League Final", "crowd_multiplier": 1.70}
+  ],
+  "monsoon_months": [6, 7, 8, 9, 10]
+}
