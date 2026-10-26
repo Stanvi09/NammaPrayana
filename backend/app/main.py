@@ -55,6 +55,25 @@ app.add_middleware(
 app.include_router(api_router)
 
 
+@app.get("/", tags=["Root"])
+def root_index():
+    """Welcome index directing commuters and operators to key endpoints."""
+    return {
+        "service": "NammaFlow Backend & Telemetry API",
+        "version": "1.0.0",
+        "status": "online",
+        "documentation": "/docs",
+        "health": "/health",
+        "endpoints": {
+            "latest_train": "/api/train/latest",
+            "delay_prediction": "/api/delay",
+            "coach_crowd": "/api/crowd",
+            "context": "/api/context",
+            "security_events": "/api/security/events"
+        }
+    }
+
+
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 def health_check():
     """System health check endpoint verifying database, MQTT, and device connectivity."""

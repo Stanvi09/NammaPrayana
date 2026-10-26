@@ -80,12 +80,13 @@ def start_demo(
     simulate: bool = True,
     duration_hours: float = 1.0
 ):
+    display_host = "localhost" if host in ("0.0.0.0", "127.0.0.1") else host
     print("==================================================================")
     print("                 NAMMAFLOW ONE-COMMAND DEMO                       ")
     print("==================================================================")
-    print(f"Server Target : http://{host}:{port}")
-    print(f"API Docs      : http://localhost:{port}/docs")
-    print(f"Health Check  : http://localhost:{port}/health")
+    print(f"Server Target : http://{display_host}:{port}")
+    print(f"API Docs      : http://{display_host}:{port}/docs")
+    print(f"Health Check  : http://{display_host}:{port}/health")
     print(f"Fleet Sim     : {'ENABLED' if simulate else 'DISABLED'}")
     print("==================================================================\n")
 

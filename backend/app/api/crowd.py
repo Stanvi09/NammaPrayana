@@ -1,5 +1,6 @@
 """API endpoints for coach crowd predictions and best-coach advice."""
 
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from backend.app.schemas.api_models import CrowdResponse
 from backend.app.services.crowd_engine import crowd_engine
