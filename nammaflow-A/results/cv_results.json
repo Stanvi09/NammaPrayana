@@ -1,0 +1,10 @@
+{
+  "no_delay": 3.490348101265823,
+  "same_delay_as_last_checkpoint": 0.706012658227848,
+  "same_as_previous_train": 2.4909177215189877,
+  "model": 0.6427538179350333,
+  "range_coverage_80": 0.7288235294117646,
+  "range_mean_width": 1.4522384649882323,
+  "no_rain_festival_flags": 0.6689273314783908,
+  "no_previous_train_delays": 0.6419421357293331
+}

@@ -1,0 +1,6 @@
+,mean_abs_error_min,pct_within_1_min
+No delay,3.49,35.44
+Same delay as now,0.71,85.76
+Same as previous train,2.49,43.67
+Model (all inputs),0.64,91.46
+"Model, rain/festival OFF",0.66,90.51
