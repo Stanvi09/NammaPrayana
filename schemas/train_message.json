@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nammaflow.internal/schemas/train_message.json",
+  "title": "NammaFlowTrainMessage",
+  "description": "Frozen track checkpoint telemetry format for NammaFlow train testbed",
+  "type": "object",
+  "required": ["train_id", "checkpoint_id", "timestamp", "scheduled_time"],
+  "properties": {
+    "train_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 32,
+      "description": "Identifier for the train set (e.g., 'T1')"
+    },
+    "checkpoint_id": {
+      "type": "string",
+      "enum": ["Start", "Mid", "Majestic", "End"],
+      "description": "One of the 4 track checkpoints: Start, Mid, Majestic, End"
+    },
+    "timestamp": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Unix epoch seconds when sensor was triggered"
+    },
+    "scheduled_time": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Unix epoch seconds of the scheduled timetable arrival"
+    }
+  },
+  "additionalProperties": false
+}
