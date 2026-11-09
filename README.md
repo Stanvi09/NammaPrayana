@@ -20,7 +20,7 @@
 1. **Four-Layer Decoupled Architecture**: Strictly isolates telemetry ingestion from downstream prediction.
 2. **Data-Source Invariance (Source-Swap)**: The exact same backend pipeline seamlessly accepts both live hardware feeds and recorded historical files without code changes.
 3. **Cryptographic Anti-Tamper & Anti-Replay Security**: Rejects fake or replayed delay messages using HMAC-SHA256 constant-time verification, canonical serialization, and sliding nonce windows.
-4. **Context-Aware Delay Forecasting**: Predicts downstream arrival at Majestic interchange using checkpoint delay propagation, confidence intervals (ranges), and probable contributing factor tagging (rain/festivals).
+4. **Context-Aware Delay Forecasting**: Predicts downstream arrival at Majestic interchange using A-to-D's simulator-trained quantile model, prediction ranges, and probable contributing factor tagging (rain/festivals).
 5. **Coach Crowding Guidance**: Classifies crowd density (`Low`, `Medium`, `High`) and advises the emptiest coach with **93.86% agreement with hand counts** (surpassing the 80% target).
 6. **Sub-Second Latency**: Measured sensor-to-app latency p99 of **0.197 seconds** (well within the < 3.0s requirement).
 
@@ -114,6 +114,9 @@ Measures execution timings across cryptography, database writes, ML inference, a
 ```bash
 python scripts/benchmark_latency.py
 ```
+
+### Delay model
+The backend loads `nammaflow-A-for-D/models/sim_delay_model.joblib` for train checkpoint predictions. Its scikit-learn version is pinned to `1.8.0` in `requirements.txt`, matching the model artifact. Backend checkpoints map to model station indexes as Start=0, Mid=3, Majestic=8, End=9; this maps the four-checkpoint testbed onto A-to-D's 0–9 simulator line. The artifact was trained on simulated laps. The backend supplies its documented defaults for leader, fault, and crowd inputs that are not present in telemetry.
 
 ---
 

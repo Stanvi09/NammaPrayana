@@ -1,11 +1,16 @@
 """Delay forecasting, confidence intervals, Leave-Now, and Connection-Saver logic."""
 
 import time
-from typing import Dict, Any, Optional, Tuple
-from backend.app.config import settings
+from datetime import datetime
+from functools import lru_cache
+from pathlib import Path
+from typing import Dict, Any
+
+import joblib
+import pandas as pd
 from backend.app.database import db
 from backend.app.services.context_service import context_service
-from backend.app.utils.time_scale import track_seconds_to_metro_minutes, track_seconds_to_metro_seconds
+from backend.app.utils.time_scale import track_seconds_to_metro_minutes
 from backend.app.utils.logger import logger
 
 
@@ -15,6 +20,63 @@ ALTERNATE_ROUTES = {
     "Mid": "Alight at prior station and take Metro Feeder MF-1 directly to Majestic concourse.",
     "Start": "Consider Metro Green Line direct or Cab aggregator; Purple Line connecting train delayed."
 }
+
+# The testbed checkpoints map onto Role A's 0..9 simulated line indexes.
+MODEL_STATIONS = {"Start": 0, "Mid": 3, "Majestic": 8, "End": 9}
+MODEL_PATH = Path(__file__).resolve().parents[3] / "nammaflow-A-for-D" / "models" / "sim_delay_model.joblib"
+
+
+@lru_cache(maxsize=1)
+def _load_simulator_model():
+    return joblib.load(MODEL_PATH)
+
+
+def _predict_at_majestic(checkpoint_id: str, delay: float, timestamp: float, ctx: Dict[str, Any]):
+    """Run A-to-D's simulator-trained median and quantile estimators."""
+    current_station = MODEL_STATIONS.get(checkpoint_id, MODEL_STATIONS["Start"])
+    target_station = MODEL_STATIONS["Majestic"]
+    if current_station >= target_station:
+        return delay, delay, delay, "none"
+
+    model = _load_simulator_model()
+    dt = datetime.fromtimestamp(timestamp)
+    row = {
+        "current_station": current_station,
+        "target_station": target_station,
+        "current_delay": delay,
+        "hour": dt.hour,
+        # The backend context is boolean, so use the documented rain-present bucket.
+        "rain_level": 1 if ctx["rain"] else 0,
+        "festival": int(ctx["festival"] or ctx["match_day"]),
+        "leader_delay": 0.0,
+        "gap_to_leader": 6.0,
+        "fault_now": 0.0,
+        "recent_fault_min": 0.0,
+        "crowd_max": 0.17,
+        "crowd_mean": 0.15,
+    }
+    row.update({
+        "stops_ahead": abs(target_station - current_station),
+        "direction": 0 if target_station > current_station else 1,
+        "target_is_interchange": int(target_station in (1, 8)),
+    })
+    x = pd.DataFrame([row])[model["features"]]
+    base = float(delay)
+    mid = max(0.0, base + float(model["median"].predict(x)[0]))
+    low = min(mid, max(0.0, base + float(model["low"].predict(x)[0])))
+    high = max(mid, base + float(model["high"].predict(x)[0]))
+
+    factor, best_shift = "none", 0.5
+    for column, label in (("rain_level", "rain"), ("festival", "festival")):
+        if row[column]:
+            without_factor = dict(row)
+            without_factor[column] = 0
+            off_x = pd.DataFrame([without_factor])[model["features"]]
+            off_mid = max(0.0, base + float(model["median"].predict(off_x)[0]))
+            shift = mid - off_mid
+            if shift >= best_shift:
+                factor, best_shift = label, shift
+    return round(mid, 1), round(low, 1), round(high, 1), factor
 
 
 class DelayEngine:
@@ -47,32 +109,16 @@ class DelayEngine:
         ctx = context_service.get_current_context(timestamp)
         probable_factor = ctx["probable_factor"]
 
-        # 3. Downstream delay propagation to Majestic (inspired by Ding et al. 2021 MTGNN)
-        # Checkpoint sequence: Start (1) -> Mid (2) -> Majestic (3) -> End (4)
-        predicted_delay_at_majestic = measured_delay_metro_mins
-
-        # Add propagation friction if delayed earlier
-        if checkpoint_id == "Start":
-            # Early delays accumulate dwell and queuing delay
-            propagation_factor = 1.15 if ctx["rain"] else 1.05
-            if ctx["festival"]:
-                propagation_factor += 0.20
-            predicted_delay_at_majestic = measured_delay_metro_mins * propagation_factor
-        elif checkpoint_id == "Mid":
-            # Approaching interchange
-            propagation_factor = 1.10 if ctx["rain"] else 1.02
-            predicted_delay_at_majestic = measured_delay_metro_mins * propagation_factor
-        elif checkpoint_id == "Majestic":
-            predicted_delay_at_majestic = measured_delay_metro_mins
-
-        # 4. Confidence intervals / range (e.g. "6 to 9 minutes")
-        # In quantile regression terms: ~80% prediction interval
-        uncertainty_spread = max(1.0, predicted_delay_at_majestic * 0.25)
-        range_low = max(0.0, round(predicted_delay_at_majestic - uncertainty_spread, 1))
-        range_high = round(predicted_delay_at_majestic + uncertainty_spread, 1)
+        # 3. Predict downstream delay at Majestic with A-to-D's trained model.
+        predicted_delay_at_majestic, range_low, range_high, model_factor = _predict_at_majestic(
+            checkpoint_id, measured_delay_metro_mins, timestamp, ctx
+        )
+        if model_factor != "none":
+            probable_factor = f"{model_factor} (probable contributing factor)"
         range_text = f"{int(round(range_low))} to {int(round(range_high))} minutes"
 
-        confidence_pct = 85.0 if not ctx["rain"] else 78.0
+        # The saved model's low/high estimators define an approximately 80% range.
+        confidence_pct = 80.0
 
         # 5. Connection-Saver alert logic (Target: alert when delay > 5 mins threatening interchange connection)
         connection_saver_alert = predicted_delay_at_majestic >= 5.0
