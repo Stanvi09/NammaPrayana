@@ -1,38 +1,23 @@
-<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/header-dark.svg">
+  <img alt="NammaFlow: metro delay and coach crowd prediction" src=".github/assets/header-light.svg" width="100%">
+</picture>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:2B0A3D,55:7B2D8E,100:22A06B&height=210&section=header&text=NammaFlow&fontSize=66&fontColor=FFFFFF&fontAlignY=36&desc=metro%20delay%20and%20coach%20crowd%20prediction&descSize=18&descAlignY=57&descColor=F3E8FF" width="100%" alt="NammaFlow banner"/>
+<p align="center"><sub>Repository <b>NammaPrayana</b>, "our journey" in Kannada &nbsp;&middot;&nbsp; Project <b>NammaFlow</b></sub></p>
 
-**A model train with real sensors, a secure IoT pipeline and ML models that answer the two questions every Bengaluru commuter asks: *"How late is it?"* and *"Which coach should I board?"***
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/stats-dark.svg">
+  <img alt="93.86% crowd model agreement with hand counts, against a 77.19% station-average baseline. 0.197 s sensor-to-app latency at p99. 4 decoupled layers." src=".github/assets/stats-light.svg" width="100%">
+</picture>
 
-![Python](https://img.shields.io/badge/Python-3.10+-7B2D8E?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-7B2D8E?style=for-the-badge&logo=fastapi&logoColor=white)
-![MQTT](https://img.shields.io/badge/MQTT-Mosquitto-22A06B?style=for-the-badge&logo=eclipsemosquitto&logoColor=white)
-![ESP32](https://img.shields.io/badge/ESP32-IR%20break--beam-22A06B?style=for-the-badge&logo=espressif&logoColor=white)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-1.8-2B0A3D?style=for-the-badge&logo=scikitlearn&logoColor=F7931E)
-![Expo](https://img.shields.io/badge/Expo-commuter%20app-2B0A3D?style=for-the-badge&logo=expo&logoColor=white)
+<br>
 
-</div>
+## 01 &nbsp; The question
 
-> **Repo name:** `NammaPrayana` ("our journey" in Kannada). **Project name:** NammaFlow.
+Every Bengaluru commuter on a platform asks the same two things: **how late is it, and which coach should I get into?**
+NammaFlow answers both on a model train fitted with real sensors, and is honest about where the testbed ends.
 
----
-
-## 🚇 Results at a glance
-
-<div align="center">
-
-| | Metric | Result | Target |
-|:-:|---|:-:|:-:|
-| 👥 | **Best-coach crowd classification** vs hand counts | **93.86 %** | ≥ 80 % |
-| 📉 | Station-average baseline (for comparison) | 77.19 % | – |
-| ⚡ | **Sensor → app latency (p99)** | **0.197 s** | < 3 s |
-| 🔐 | Forged / replayed messages accepted | **0** | 0 |
-
-<sub>Crowd model evaluated on 19 held-out sessions (split by session, no leakage). Details in <a href="docs/MODEL_CARD.md">docs/MODEL_CARD.md</a>.</sub>
-
-</div>
-
-## 🧩 How it works
+## 02 &nbsp; How it works
 
 ```mermaid
 flowchart LR
@@ -63,88 +48,79 @@ flowchart LR
     API --> APP
 ```
 
-## ✨ What makes it interesting
+| Layer | What happens |
+|---|---|
+| **Sensing** | A model train passes ESP32 infrared break-beam gates at *Start, Mid, Majestic* and *End*. A two-beam state machine on coach C1 tells boarding from alighting. Coaches C2 to C6 come from a seeded simulator. |
+| **Secure ingestion** | Every message is signed with HMAC-SHA256 over a canonical JSON form, checked in constant time, and has to pass a sliding nonce window, so replayed or forged delays are rejected. |
+| **Prediction** | A quantile model gives the delay at Majestic interchange as a **range**, tagged with a *probable* factor (rain or festival). An interpretable classifier rates each coach Low, Medium or High and picks the emptiest. |
+| **Presentation** | FastAPI with interactive docs, and an Expo app in three languages that can read advice aloud. |
 
-**1 · Hardware in the loop, not just a notebook**
-A physical model train runs past ESP32 infrared break-beam gates at four checkpoints (*Start → Mid → Majestic → End*). A two-sensor **directional door counter** (a small state machine in [`hardware/occupancytrial1.ino`](hardware/occupancytrial1.ino)) counts passengers in and out of coach C1.
+## 03 &nbsp; Decisions I'd defend in an interview
 
-**2 · Source-swap architecture**
-The *same* pipeline accepts live hardware messages **or** recorded files without code changes (`scripts/run_source_swap.py`). Models can be built without the train, and recorded runs can be replayed.
+- **Source-swap architecture.** The same pipeline takes live hardware messages or recorded files with no code changes. The models could be built without the train, and any run can be replayed exactly.
+- **Ranges, not single numbers.** "Two to six minutes" is honest, and "four minutes" is false precision.
+- **An interpretable crowd model.** Thresholds on people count, rush hour, coach position, stair distance and capacity. When it says *board coach 4*, you can explain why.
+- **The split is by session.** 56 training and 19 test sessions, with no coach from a test session ever seen in training. That's why 93.86% is a number worth trusting.
 
-**3 · Security as a feature**
-Every sensor message is signed with **HMAC-SHA256** over a *canonical* JSON form, checked in constant time, and protected by a **sliding nonce window** against replay. Fake or replayed "delay" messages are rejected. See [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
+## 04 &nbsp; Honest claims
 
-**4 · Context-aware delay forecasting**
-A quantile model trained on simulator laps predicts the delay at **Majestic interchange** as a *range* (e.g. "2 to 6 min"), tagged with a **probable contributing factor** (rain or festival from the calendar and saved weather data).
+This is a testbed. We **don't** claim to predict live Namma Metro trains. Rain and festivals are only *probable contributing factors*, and coaches C2 to C6 are simulated. Being clear about limits is part of the work.
 
-**5 · Interpretable crowd guidance**
-A multi-threshold decision model classifies each coach as **Low / Medium / High** using people count, time of day, rush hour, coach position, stair distance and capacity ratio, then recommends the emptiest coach.
-
-**6 · Honest claims**
-This is a testbed. We **don't** claim to predict live Namma Metro trains, rain and festivals are only *probable* factors, and coaches C2–C6 are simulated. Being clear about limits is part of the work.
-
-## 🚀 Quickstart
+## 05 &nbsp; Run it
 
 ```bash
-git clone https://github.com/Stanvi09/NammaPrayana.git
-cd NammaPrayana
+git clone https://github.com/Stanvi09/NammaPrayana.git && cd NammaPrayana
 python -m pip install -r requirements.txt
-cp .env.example .env                 # Windows: copy .env.example .env
-python scripts/start_demo.py         # or start_demo.bat / ./start_demo.sh
+cp .env.example .env
+python scripts/start_demo.py          # or start_demo.bat / ./start_demo.sh
 ```
 
-Open **http://localhost:8000/docs** for the interactive API.
-*(Mosquitto is optional. Without a broker the backend runs in fallback mode.)*
+Open **http://localhost:8000/docs**. Mosquitto is optional, and the backend falls back cleanly without a broker.
 
 | Task | Command |
 |---|---|
-| Run all tests | `python -m pytest tests -v` |
-| Simulate coaches C2–C6 | `python simulator/fleet_simulator.py --seed 42 --steps 10 --dry-run` |
-| Replay recorded data through the pipeline | `python scripts/run_source_swap.py` |
+| Tests | `python -m pytest tests -v` |
+| Simulate coaches C2 to C6 | `python simulator/fleet_simulator.py --seed 42 --steps 10 --dry-run` |
+| Replay recorded data | `python scripts/run_source_swap.py` |
 | Benchmark latency | `python scripts/benchmark_latency.py` |
-| Generate device keys | `python scripts/generate_keys.py` |
 | Commuter app | `cd Frontend && npm install && npx expo start` |
 
-## 📁 Repository map
+## 06 &nbsp; Repository map
 
 ```
 NammaPrayana/
 ├── backend/app/
-│   ├── api/           # /health /train /delay /crowd /context /security
-│   ├── services/      # pipeline, delay engine, crowd engine, source-swap, watchdog
-│   ├── crowd/         # crowd model + training
-│   ├── mqtt/          # client, topics, handlers
-│   ├── security/      # HMAC, canonical serialisation, replay protection
-│   └── schemas/       # Pydantic models
-├── simulator/         # deterministic fleet simulator (C2–C6)
-├── schemas/           # frozen JSON Schemas for train & door messages
-├── nammaflow-A/       # delay-model research: data, training, CV results
-├── nammaflow-A-for-D/ # packaged simulator-trained delay model used by the backend
-├── Frontend/          # Expo / React Native commuter app (EN · KN · HI, read-aloud)
-├── hardware/          # ESP32 firmware: station timing + door occupancy counter
-├── tests/             # pytest suite: e2e, security, schemas, performance, source-swap
-├── scripts/           # demo, benchmark, key generation, probes
-├── docs/              # architecture, API, data format, model card, runbook, threat model
-└── paper/             # IEEE-format paper draft (LaTeX + BibTeX)
+│   ├── api/            /health /train /delay /crowd /context /security
+│   ├── services/       pipeline, delay and crowd engines, source-swap, watchdog
+│   ├── crowd/          crowd model and training
+│   ├── mqtt/           client, topics, handlers
+│   ├── security/       HMAC, canonical serialisation, replay protection
+│   └── schemas/        Pydantic models
+├── hardware/           ESP32 firmware: station timing and door counter
+├── simulator/          deterministic fleet simulator
+├── schemas/            frozen JSON Schemas for train and door messages
+├── nammaflow-A/        delay-model research: data, training, CV results
+├── nammaflow-A-for-D/  packaged delay model used by the backend
+├── Frontend/           Expo commuter app
+├── tests/              e2e, security, schemas, performance, source-swap
+├── scripts/            demo, benchmark, key generation
+├── docs/               architecture, API, data format, model card, threat model
+└── paper/              IEEE-format paper draft
 ```
 
-## 📄 Documentation & paper
+## 07 &nbsp; Read more
 
-[Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Data format](docs/DATA_FORMAT.md) · [Model card](docs/MODEL_CARD.md) · [Security](docs/SECURITY.md) · [Threat model](docs/THREAT_MODEL.md) · [Runbook](docs/RUNBOOK.md) · [Paper draft](paper/paper_draft.md)
+[Architecture](docs/ARCHITECTURE.md) &nbsp;&middot;&nbsp; [API](docs/API.md) &nbsp;&middot;&nbsp; [Model card](docs/MODEL_CARD.md) &nbsp;&middot;&nbsp; [Security](docs/SECURITY.md) &nbsp;&middot;&nbsp; [Threat model](docs/THREAT_MODEL.md) &nbsp;&middot;&nbsp; [Runbook](docs/RUNBOOK.md) &nbsp;&middot;&nbsp; [Paper draft](paper/paper_draft.md)
 
-## 👥 Team
+## 08 &nbsp; Team
 
-Built by a four-person team, each owning one layer: sensing hardware, delay modelling, the commuter app, and backend / security / crowd modelling.
+Built by a four-person team, each owning one layer: sensing hardware, delay modelling, the commuter app, and backend, security and crowd modelling.
 
----
+<br>
 
-<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/footer-dark.svg">
+  <img alt="Built with team NammaFlow, one detail at a time." src=".github/assets/footer-light.svg" width="100%">
+</picture>
 
-**Tanvi Sadashiv**
-<br/>
-<a href="https://www.linkedin.com/in/tanvi-sadashiv-3713ba381"><img src="https://img.shields.io/badge/LinkedIn-connect-0A66C2?style=flat-square&logo=linkedin" alt="LinkedIn"/></a>
-<a href="https://github.com/Stanvi09"><img src="https://img.shields.io/badge/GitHub-Stanvi09-181717?style=flat-square&logo=github" alt="GitHub"/></a>
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:22A06B,45:7B2D8E,100:2B0A3D&height=100&section=footer" width="100%"/>
-
-</div>
+<p align="center"><sub><a href="https://www.linkedin.com/in/tanvi-sadashiv-3713ba381">LinkedIn</a> &nbsp;&middot;&nbsp; <a href="https://github.com/Stanvi09">GitHub</a></sub></p>
