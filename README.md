@@ -36,23 +36,23 @@
 
 ```mermaid
 flowchart LR
-    subgraph L1["① Sensing"]
+    subgraph L1["1. Sensing"]
       IR["ESP32 + IR break-beams<br/>4 checkpoints"]
       DOOR["Directional door counter<br/>coach C1"]
-      SIM["Fleet simulator<br/>coaches C2–C6"]
+      SIM["Fleet simulator<br/>coaches C2-C6"]
     end
-    subgraph L2["② Secure ingestion"]
+    subgraph L2["2. Secure ingestion"]
       MQ["Mosquitto MQTT"]
       SEC["HMAC-SHA256 verify<br/>+ anti-replay nonces"]
     end
-    subgraph L3["③ Prediction"]
+    subgraph L3["3. Prediction"]
       DB[("SQLite")]
       DLY["Delay engine<br/>quantile model + rain/festival context"]
       CRW["Crowd engine<br/>interpretable classifier"]
     end
-    subgraph L4["④ Presentation"]
+    subgraph L4["4. Presentation"]
       API["FastAPI REST"]
-      APP["Commuter app<br/>EN · ಕನ್ನಡ · हिन्दी"]
+      APP["Commuter app<br/>English, Kannada, Hindi"]
     end
     IR --> MQ
     DOOR --> MQ
