@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:2B0A3D,55:7B2D8E,100:22A06B&height=210&section=header&text=NammaFlow&fontSize=66&fontColor=FFFFFF&fontAlignY=36&desc=metro%20delay%20%26%20coach-crowd%20prediction%20on%20a%20real%20sensor%20testbed&descSize=17&descAlignY=57&descColor=F3E8FF" width="100%" alt="NammaFlow banner"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:2B0A3D,55:7B2D8E,100:22A06B&height=210&section=header&text=NammaFlow&fontSize=66&fontColor=FFFFFF&fontAlignY=36&desc=metro%20delay%20and%20coach%20crowd%20prediction&descSize=18&descAlignY=57&descColor=F3E8FF" width="100%" alt="NammaFlow banner"/>
 
 **A model train with real sensors, a secure IoT pipeline and ML models that answer the two questions every Bengaluru commuter asks: *"How late is it?"* and *"Which coach should I board?"***
 
