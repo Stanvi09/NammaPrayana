@@ -6,7 +6,7 @@ The end-to-end pipeline is:
 
 ```
 [Hardware Testbed]       [Messaging]          [Core Processing]              [Presentation]
-ESP32 IR Sensors  --->  Mosquitto MQTT ---> FastAPI Ingestion Pipeline ---> Flutter App (Role C)
+ESP32 IR Sensors  --->  Mosquitto MQTT ---> FastAPI Ingestion Pipeline ---> Expo App (Role C)   
 Break-beam Gates        TLS / Auth          Validation -> SQLite -> ML     Operator Dashboard
                                             Delay & Crowd Engines
 ```
